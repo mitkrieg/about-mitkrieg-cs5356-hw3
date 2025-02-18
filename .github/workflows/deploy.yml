@@ -11,6 +11,9 @@ on:
 # what to do in the workflow
 jobs:
     deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
         # give permissions to the job
         permissions:
             id-token: write
