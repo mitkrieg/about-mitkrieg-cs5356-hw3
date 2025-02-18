@@ -1,0 +1,33 @@
+# name of workflow
+name: Deploy to GitHub Pages
+
+#when to run this workflow
+on:
+    push:
+        branches:
+            - main
+    # pull_requests:
+
+# what to do in the workflow
+jobs:
+    deploy:
+        # what machine to run workflow on
+        runs-on: ubuntu-latest
+        # only allow one workflow to run at once
+        concurrency: ci-{{github.ref}}
+        steps:
+            # downloads repo
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Setup pages
+              uses: actions/configure-pages@v5
+            
+            - name: Upload Artifacts
+              uses: actions/upload-pages-artifact@v3
+              with:
+                path: './src/'
+            
+            - name: Deploy to Github Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
