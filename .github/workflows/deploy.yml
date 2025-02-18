@@ -11,6 +11,10 @@ on:
 # what to do in the workflow
 jobs:
     deploy:
+        # give permissions to the job
+        permissions:
+            id-token: write
+            pages: write
         # what machine to run workflow on
         runs-on: ubuntu-latest
         # only allow one workflow to run at once
@@ -20,14 +24,17 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
+            #set up pages
             - name: Setup pages
               uses: actions/configure-pages@v5
             
+            # indicate what to upload
             - name: Upload Artifacts
               uses: actions/upload-pages-artifact@v3
               with:
                 path: './src/'
             
+            # deploy
             - name: Deploy to Github Pages
               id: deployment
               uses: actions/deploy-pages@v4
