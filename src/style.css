@@ -1,0 +1,39 @@
+html * {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: white;
+    background-color: black;
+}
+
+h1 {
+    margin: 1rem;
+    font-size: 35pt;
+}
+#content {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
+
+#left {
+    flex: 0 1 30%;
+}
+
+#right {
+    flex: 1; 
+    min-width: 200px; 
+}
+
+
+#headshot {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20pt;
+    margin: 1rem;
+}
