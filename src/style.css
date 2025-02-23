@@ -37,3 +37,17 @@ h1 {
     border-radius: 20pt;
     margin: 1rem;
 }
+
+#headerText {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#headerText > h1 {
+    margin: .5rem;
+}
+
+#wave {
+    transition: transform 0.3s;
+}
