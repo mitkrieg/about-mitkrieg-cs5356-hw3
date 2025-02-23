@@ -45,9 +45,31 @@ h1 {
 }
 
 #headerText > h1 {
-    margin: .5rem;
+    margin: .35rem;
 }
 
 #wave {
-    transition: transform 0.3s;
+    transition: transform 0.3s ease-in-out;
+    animation: wave-load 1s ease-in-out 1;
+    padding: 0;
+}
+
+#headerText:hover #wave {
+    animation: wave-hover 1s ease-in-out;
+}
+
+@keyframes wave-hover {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(45deg); }
+    50% { transform: rotate(-45deg); }
+    75% { transform: rotate(45deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes wave-load {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(45deg); }
+    50% { transform: rotate(-45deg); }
+    75% { transform: rotate(45deg); }
+    100% { transform: rotate(0deg); }
 }
