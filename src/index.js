@@ -27,15 +27,34 @@ window.onload = () => {
 
 head.addEventListener("mouseover", wave);
 
-const subwayFeeds = {
-    'ace':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-    'g':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
-    'nqrw':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    '1234567s':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    'bdfms':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    'jz':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-    'l':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
-    'sir':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
+// const subwayFeeds = {
+//     'ace':,
+//     'g':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
+//     'nqrw':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
+//     '1234567s':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
+//     'bdfms':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
+//     'jz':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
+//     'l':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
+//     'sir':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
+// }
+
+function getFeed(line) {
+    if (['A','C','E'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace"
+    } else if (['G'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g"
+    } else if (['N','Q','R','W'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw"
+    } else if (['1','2','3','4','5','6','7','7X','6X','GS'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs"
+    } else if (['B','D','F','M'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm"
+    } else if (['J','Z'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz"
+    } else if (['L'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l"
+    } 
+    return ''
 }
 
 const stationIds = {
@@ -542,13 +561,13 @@ function unixTimeToDateTime(unixTime) {
     return date.toLocaleString();
   }
 
-async function fetchSubway() {
+async function fetchSubway(line) {
     console.log('were in')
 
     try {
-        const response = await fetch(
-        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs"
-        );
+        let url = getFeed(line)
+        console.log(`Attempt to get subway line ${line} from ${url}`)
+        const response = await fetch(url);
         console.log(response.ok)
         if (!response.ok) {
             const error = new Error(
@@ -562,14 +581,14 @@ async function fetchSubway() {
             new Uint8Array(buffer)
         );
         let updates = [];
+        console.log('fetching updates')
         feed.entity.forEach((entity) => {
             if (entity.tripUpdate) {
-                console.log(entity.tripUpdate);
                 let update = entity.tripUpdate
-                console.log('Fetching updates')
-                update.stopTimeUpdate.forEach((stop) => {
-                        if (!stop.departure) {
-                            let direction = stop.stopId[stop.stopId.length - 1];
+                if (update.stopTimeUpdate.length > 0 && update.trip.routeId == line) {
+                    let stop = update.stopTimeUpdate[update.stopTimeUpdate.length - 1]
+                    if (stop.arrival.time >= Math.floor(Date.now()/1000)) {
+                        let direction = stop.stopId[stop.stopId.length - 1];
                             if (direction == 'N') {
                                 direction = 'Uptown';
                             } else if (direction == "S") {
@@ -585,11 +604,8 @@ async function fetchSubway() {
                                 'arrival':unixTimeToDateTime(stop.arrival.time),
                                 'departure':unixTimeToDateTime(stop.departure)
                             });
-                        }
-
                     }
-
-                )
+                }
                 
             }
         });
@@ -602,3 +618,11 @@ async function fetchSubway() {
         console.log('end');
     }
 }
+
+const subwayIcons = document.getElementsByClassName('subwayIcon')
+// console.log(subwayIcons)
+
+Array.prototype.forEach.call(subwayIcons, function (icon) {
+    let line = icon.id.split('-')[1]
+    icon.addEventListener('click', (event) => fetchSubway(line))
+})

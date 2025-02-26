@@ -88,7 +88,7 @@ h3 {
     justify-content: space-between;
     align-content: center;
     align-content: baseline;
-    border-bottom: 3pt solid white;
+    border-bottom: 1pt solid white;
 }
 
 @keyframes wave-hover {
@@ -109,4 +109,22 @@ h3 {
 
 footer {
     border-top: 3pt solid white;
+}
+
+header {
+    border-bottom: 3pt solid white;
+}
+
+.subwayIcon {
+    max-width: 20pt;
+    margin: 2pt;
+    cursor: pointer;
+}
+
+#subwayIconList {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1rem;
+
 }
