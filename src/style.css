@@ -118,8 +118,14 @@ header {
 
 .subwayIcon {
     max-width: 20pt;
-    margin: 2pt;
+    margin: 1pt;
     cursor: pointer;
+    border: 2px solid transparent; 
+}
+
+.subwayIcon:hover {
+    border-color: white; 
+    border-radius: 50%;
 }
 
 #subwayIconList {
@@ -153,4 +159,8 @@ table {
     max-width: 50pt;
     margin: 2pt;
 
+}
+
+.subwayArrival {
+    font-size: .75em;
 }
