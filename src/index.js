@@ -1,9 +1,11 @@
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
+
 import './style.css';
 
 console.log('CSS should be injected into the page!');
 
 const head = document.getElementById("headerText");
+
 
 function wave() {
     console.log('wave!')
@@ -40,6 +42,7 @@ function getFeed(line) {
         return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
     }
     return ''
+
 }
 
 const stationIds = {
@@ -642,6 +645,7 @@ async function fetchSubway(line) {
         let url = getFeed(line)
         console.log(`Attempt to get subway line ${line} from ${url}`)
         const response = await fetch(url);
+
         console.log(response.ok)
         if (!response.ok) {
             const error = new Error(
@@ -694,14 +698,13 @@ async function fetchSubway(line) {
             tablediv.appendChild(downtownTable)
         }
 
-        
-        
     } catch(error) {
         console.log('Error!');
         console.log(error);
     } finally {
         console.log('end');
     }
+
 }
 
 const subwayIcons = document.getElementsByClassName('subwayIcon')
@@ -725,3 +728,4 @@ Array.prototype.forEach.call(subwayIcons, function (icon) {
         fetchSubway(line)
     })
 })
+
