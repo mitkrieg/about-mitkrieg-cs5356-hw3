@@ -57,13 +57,14 @@ h3 {
 }
 
 #headerText > h1 {
-    margin: .35rem;
+    margin: .5rem;
 }
 
 #wave {
     transition: transform 0.3s ease-in-out;
     animation: wave-load 1s ease-in-out 1;
-    padding: 0;
+    /* padding: 0; */
+    margin: 5pt;
 }
 
 #headerText:hover #wave {
@@ -88,7 +89,7 @@ h3 {
     justify-content: space-between;
     align-content: center;
     align-content: baseline;
-    border-bottom: 3pt solid white;
+    border-bottom: 1pt solid white;
 }
 
 @keyframes wave-hover {
@@ -109,4 +110,47 @@ h3 {
 
 footer {
     border-top: 3pt solid white;
+}
+
+header {
+    border-bottom: 3pt solid white;
+}
+
+.subwayIcon {
+    max-width: 20pt;
+    margin: 2pt;
+    cursor: pointer;
+}
+
+#subwayIconList {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1rem;
+
+}
+
+.subwayDisplay {
+    display: flex;
+    flex-direction: column;
+}
+
+#tables {
+    display: flex;
+    flex-direction: row;
+}
+
+th {
+    text-align: left;
+    border-bottom: 1pt solid white;
+}
+
+table {
+    margin: 10pt;
+}
+
+.activeLine {
+    max-width: 50pt;
+    margin: 2pt;
+
 }

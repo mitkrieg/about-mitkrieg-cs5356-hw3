@@ -1,15 +1,11 @@
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
-// import fetch from "node-fetch";
+
 import './style.css';
 
 console.log('CSS should be injected into the page!');
 
 const head = document.getElementById("headerText");
-const s = document.getElementById('foot');
-    if (s) {
-        s.addEventListener("click", fetchSubway);
-        console.log(s)
-    }
+
 
 function wave() {
     console.log('wave!')
@@ -27,15 +23,26 @@ window.onload = () => {
 
 head.addEventListener("mouseover", wave);
 
-const subwayFeeds = {
-    'ace':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
-    'g':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g",
-    'nqrw':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw",
-    '1234567s':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs",
-    'bdfms':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm",
-    'jz':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz",
-    'l':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l",
-    'sir':"https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
+function getFeed(line) {
+    if (['A','C','E'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace"
+    } else if (['G'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-g"
+    } else if (['N','Q','R','W'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw"
+    } else if (['1','2','3','4','5','6','7','7X','6X','GS'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs"
+    } else if (['B','D','F','M'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm"
+    } else if (['J','Z'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz"
+    } else if (['L'].includes(line)) {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l"
+    } else if (line == 'SIR') {
+        return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
+    }
+    return ''
+
 }
 
 const stationIds = {
@@ -542,13 +549,103 @@ function unixTimeToDateTime(unixTime) {
     return date.toLocaleString();
   }
 
-async function fetchSubway() {
+  function parseGtfs(entity, line) {
+    if (entity.tripUpdate && entity.tripUpdate.trip.routeId === line) {
+      for (let update of entity.tripUpdate.stopTimeUpdate) {
+
+        let time = update.arrival ? update.arrival.time : update.departure;
+        
+        if (time == null) {
+          console.log('Time is null');
+          continue;
+        }
+        
+        if (time >= Math.floor(Date.now() / 1000) && time <= Math.floor(Date.now() / 1000) + (3600*2)) {
+
+          let directionChar = update.stopId.slice(-1);
+          let direction;
+          if (directionChar === 'N') {
+            direction = 'Uptown';
+          } else if (directionChar === 'S') {
+            direction = 'Downtown';
+          } else {
+            direction = 'ERROR';
+          }
+          
+
+          return {
+            line: line,
+            nextStopId: update.stopId,
+            nextStop: stationIds[update.stopId.slice(0, -1)], 
+            direction: direction,
+            arrivalUnix: update.arrival ? update.arrival.time : null,
+            arrival: unixTimeToDateTime(update.arrival ? update.arrival.time : null),
+            departure: unixTimeToDateTime(update.departure)
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function createArrivalTable(updates, title) {
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    table.style.width = '100%';
+
+    // title
+    const caption = table.createCaption();
+    caption.textContent = title;
+    caption.style.fontWeight = 'bold';
+    caption.style.padding = '8px';
+  
+    // header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+  
+    const headers = ['Next Stop', 'Arrival Time'];
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+    //   th.style.border = '1px solid #000';
+    //   th.style.padding = '8px';
+      headerRow.appendChild(th);
+    });
+  
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+  
+    //body
+    const tbody = document.createElement('tbody');
+  
+    updates.forEach(update => {
+      const row = document.createElement('tr');
+  
+      const tdStop = document.createElement('td');
+      tdStop.textContent = update.nextStop;
+      row.appendChild(tdStop);
+  
+      const tdArrival = document.createElement('td');
+      tdArrival.textContent = update.arrival;
+      row.appendChild(tdArrival);
+  
+      tbody.appendChild(row);
+    });
+  
+    table.appendChild(tbody);
+  
+    return table
+  }
+
+async function fetchSubway(line) {
     console.log('were in')
 
     try {
-        const response = await fetch(
-        "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs"
-        );
+        let url = getFeed(line)
+        console.log(`Attempt to get subway line ${line} from ${url}`)
+        const response = await fetch(url);
+
         console.log(response.ok)
         if (!response.ok) {
             const error = new Error(
@@ -562,43 +659,73 @@ async function fetchSubway() {
             new Uint8Array(buffer)
         );
         let updates = [];
+        console.log('fetching updates')
         feed.entity.forEach((entity) => {
-            if (entity.tripUpdate) {
-                console.log(entity.tripUpdate);
-                let update = entity.tripUpdate
-                console.log('Fetching updates')
-                update.stopTimeUpdate.forEach((stop) => {
-                        if (!stop.departure) {
-                            let direction = stop.stopId[stop.stopId.length - 1];
-                            if (direction == 'N') {
-                                direction = 'Uptown';
-                            } else if (direction == "S") {
-                                direction = 'Downtown';
-                            } else {
-                                direction = 'ERROR';
-                            }
-                            updates.push({
-                                'line':update.trip.routeId,
-                                'nextStopId':stop.stopId,
-                                'nextStop':stationIds[stop.stopId.substring(0, stop.stopId.length - 1)],
-                                'direction':direction,
-                                'arrival':unixTimeToDateTime(stop.arrival.time),
-                                'departure':unixTimeToDateTime(stop.departure)
-                            });
-                        }
-
-                    }
-
-                )
-                
+            let parsed = parseGtfs(entity, line)
+            if (parsed != null) {
+                updates.push(parsed);
             }
         });
-        console.log('log updates')
-        console.log(updates);
+        if (updates.length == 0) {
+            let display = document.getElementById('subwayDisplay')
+            let text = document.createElement('p')
+            text.innerText = 'No Upcoming Trains'
+            display.append(text)
+        } else {
+            updates.sort((a, b) => {
+                if (a.arrivalUnix < b.arrivalUnix) {
+                    return -1
+                }
+                if (a.arrivalUnix > b.arrivalUnix) {
+                    return 1
+                }
+                return 0
+            })
+            let uptown = []
+            let downtown = []
+            updates.forEach((stop) => {
+                if (stop.direction == 'Uptown') {
+                    uptown.push(stop);
+                } else if  (stop.direction == 'Downtown') {
+                    downtown.push(stop);
+                } 
+            })
+    
+            let tablediv = document.getElementById('tables')
+            let uptownTable = createArrivalTable(uptown, 'Downtown-bound Arrivals');
+            let downtownTable = createArrivalTable(downtown, 'Uptown-bound Arrivals');
+            tablediv.appendChild(uptownTable)
+            tablediv.appendChild(downtownTable)
+        }
+
     } catch(error) {
         console.log('Error!');
         console.log(error);
     } finally {
         console.log('end');
     }
+
 }
+
+const subwayIcons = document.getElementsByClassName('subwayIcon')
+
+
+Array.prototype.forEach.call(subwayIcons, function (icon) {
+    
+    icon.addEventListener('click', (event) => {
+        let line = icon.id.split('-')[1]
+        let display = document.getElementById('subwayDisplay')
+
+        while (display.firstChild) {
+            display.removeChild(display.firstChild);
+        }
+        let clone = icon.cloneNode(true)
+        clone.className = 'activeLine'
+        display.appendChild(clone)
+        let tablediv = document.createElement('div')
+        tablediv.id = 'tables'
+        display.appendChild(tablediv)
+        fetchSubway(line)
+    })
+})
+
