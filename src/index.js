@@ -6,22 +6,22 @@ console.log('CSS should be injected into the page!');
 
 const head = document.getElementById("headerText");
 
+// old way to do waving hand emoji
+// function wave() {
+//     console.log('wave!')
+//     const hand = document.getElementById("wave");
+//     hand.style.transform = "rotate(45deg)";
+//     setTimeout(() => {hand.style.transform = "rotate(0deg)";},250);
+//     setTimeout(() => {hand.style.transform = "rotate(45deg)";},500);
+//     setTimeout(() => {hand.style.transform = "rotate(0deg)";},750);
+// }
 
-function wave() {
-    console.log('wave!')
-    const hand = document.getElementById("wave");
-    hand.style.transform = "rotate(45deg)";
-    setTimeout(() => {hand.style.transform = "rotate(0deg)";},250);
-    setTimeout(() => {hand.style.transform = "rotate(45deg)";},500);
-    setTimeout(() => {hand.style.transform = "rotate(0deg)";},750);
-}
-
-window.onload = () => {
-    setTimeout(wave,500);
+// window.onload = () => {
+//     setTimeout(wave,500);
     
-};
+// };
 
-head.addEventListener("mouseover", wave);
+// head.addEventListener("mouseover", wave);
 
 function getFeed(line) {
     if (['A','C','E'].includes(line)) {
@@ -38,7 +38,7 @@ function getFeed(line) {
         return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-jz"
     } else if (['L'].includes(line)) {
         return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-l"
-    } else if (line == 'SIR') {
+    } else if (line == 'SI') {
         return "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-si"
     }
     return ''
@@ -551,7 +551,7 @@ function unixTimeToDateTime(unixTime) {
 
   function parseGtfs(entity, line) {
     if (entity.tripUpdate && entity.tripUpdate.trip.routeId === line) {
-      for (let update of entity.tripUpdate.stopTimeUpdate) {
+        for (let update of entity.tripUpdate.stopTimeUpdate) {
 
         let time = update.arrival ? update.arrival.time : update.departure;
         
@@ -608,8 +608,6 @@ function unixTimeToDateTime(unixTime) {
     headers.forEach(headerText => {
       const th = document.createElement('th');
       th.textContent = headerText;
-    //   th.style.border = '1px solid #000';
-    //   th.style.padding = '8px';
       headerRow.appendChild(th);
     });
   
@@ -621,6 +619,7 @@ function unixTimeToDateTime(unixTime) {
   
     updates.forEach(update => {
       const row = document.createElement('tr');
+      row.className = 'subwayArrival'
   
       const tdStop = document.createElement('td');
       tdStop.textContent = update.nextStop;
@@ -639,7 +638,6 @@ function unixTimeToDateTime(unixTime) {
   }
 
 async function fetchSubway(line) {
-    console.log('were in')
 
     try {
         let url = getFeed(line)
@@ -653,13 +651,11 @@ async function fetchSubway(line) {
             );
         
         } 
-        console.log('fsdf');
         const buffer = await response.arrayBuffer();
         const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(
             new Uint8Array(buffer)
         );
         let updates = [];
-        console.log('fetching updates')
         feed.entity.forEach((entity) => {
             let parsed = parseGtfs(entity, line)
             if (parsed != null) {
